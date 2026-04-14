@@ -1,0 +1,28 @@
+[project]
+name = "prompt-reliability-lab"
+version = "1.0.0"
+description = "Prompt engineering evaluation harness for geometry-operation LLM prompts"
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.30.0",
+    "pandas>=2.2.0",
+    "rich>=13.7.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[project.scripts]
+evaluate = "evaluate:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["src*"]

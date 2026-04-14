@@ -1,0 +1,426 @@
+{
+  "N01": {
+    "operation_class": "create_primitive",
+    "operation_type": "box",
+    "required_params": ["width", "height", "depth"],
+    "expected_values": {"width": 5.0, "height": 3.0, "depth": 4.0},
+    "unit": "meters",
+    "constraints": [],
+    "valid_response": true,
+    "notes": "Straightforward box creation with explicit dimensions"
+  },
+  "N02": {
+    "operation_class": "create_primitive",
+    "operation_type": "cylinder",
+    "required_params": ["radius", "height"],
+    "expected_values": {"radius": 2.0, "height": 6.0},
+    "unit": "meters",
+    "constraints": [],
+    "valid_response": true,
+    "notes": "Simple cylinder with two parameters"
+  },
+  "N03": {
+    "operation_class": "create_primitive",
+    "operation_type": "sphere",
+    "required_params": ["radius"],
+    "expected_values": {"radius": 3.0, "center": [0, 0, 0]},
+    "unit": "meters",
+    "constraints": [],
+    "valid_response": true,
+    "notes": "Sphere at origin"
+  },
+  "N04": {
+    "operation_class": "transform",
+    "operation_type": "move",
+    "required_params": ["translation"],
+    "expected_values": {"translation": [10, 0, 0]},
+    "unit": "units",
+    "constraints": ["requires_selection"],
+    "valid_response": true,
+    "notes": "Simple translation along X"
+  },
+  "N05": {
+    "operation_class": "transform",
+    "operation_type": "rotate",
+    "required_params": ["angle", "axis"],
+    "expected_values": {"angle": 45.0, "axis": [0, 0, 1]},
+    "unit": "degrees",
+    "constraints": ["requires_selection"],
+    "valid_response": true,
+    "notes": "Rotation around Z axis"
+  },
+  "N06": {
+    "operation_class": "transform",
+    "operation_type": "scale",
+    "required_params": ["factor"],
+    "expected_values": {"factor": 2.0},
+    "unit": null,
+    "constraints": ["requires_selection"],
+    "valid_response": true,
+    "notes": "Uniform scale"
+  },
+  "N07": {
+    "operation_class": "pattern",
+    "operation_type": "array_grid",
+    "required_params": ["count_x", "count_y", "spacing"],
+    "expected_values": {"count_x": 3, "count_y": 3, "spacing": 5.0},
+    "unit": "meters",
+    "constraints": ["requires_base_object"],
+    "valid_response": true,
+    "notes": "3x3 rectangular grid array of boxes"
+  },
+  "N08": {
+    "operation_class": "create_surface",
+    "operation_type": "polyline_surface",
+    "required_params": ["points"],
+    "expected_values": {"points": [[0,0,0],[10,0,0],[10,10,0],[0,10,0]]},
+    "unit": "units",
+    "constraints": ["min_points_4"],
+    "valid_response": true,
+    "notes": "Planar surface from corner points"
+  },
+  "N09": {
+    "operation_class": "create_primitive",
+    "operation_type": "box",
+    "required_params": ["width", "height", "depth", "position"],
+    "expected_values": {"width": 8.0, "height": 12.0, "depth": 6.0, "position": [5, 10, 0]},
+    "unit": "meters",
+    "constraints": [],
+    "valid_response": true,
+    "notes": "Box with explicit position — tests position param extraction"
+  },
+  "N10": {
+    "operation_class": "multi_step",
+    "steps": [
+      {"operation_type": "create_primitive", "subtype": "cylinder", "params": {"radius": 1.5, "height": 4.0}},
+      {"operation_type": "transform", "subtype": "move", "params": {"translation": [0, 0, 3]}}
+    ],
+    "constraints": [],
+    "valid_response": true,
+    "notes": "Two-step: create then move"
+  },
+  "N11": {
+    "operation_class": "composite",
+    "steps": [
+      {"operation_type": "create_primitive", "subtype": "cylinder", "params": {"radius": 0.5, "height": 3.0}},
+      {"operation_type": "pattern", "subtype": "array_linear", "params": {"count_x": 5, "count_y": 2, "spacing": 2.0}}
+    ],
+    "constraints": [],
+    "valid_response": true,
+    "notes": "Create base object then array — tests composite understanding"
+  },
+  "N12": {
+    "operation_class": "multi_step",
+    "steps": [
+      {"operation_type": "create_primitive", "subtype": "box"},
+      {"operation_type": "transform", "subtype": "rotate", "params": {"angle": 30.0}}
+    ],
+    "constraints": ["rotate_around_center"],
+    "valid_response": true,
+    "notes": "Create and rotate — 'around its center' is an important constraint"
+  },
+  "N13": {
+    "operation_class": "multi_step",
+    "steps": [
+      {"operation_type": "create_primitive", "subtype": "box", "params": {"width": 4, "height": 4, "depth": 4}},
+      {"operation_type": "create_primitive", "subtype": "box", "params": {"width": 4, "height": 4, "depth": 4}},
+      {"operation_type": "transform", "subtype": "move", "params": {"translation": [5, 0, 0]}}
+    ],
+    "constraints": ["gap_1m"],
+    "valid_response": true,
+    "notes": "Two objects with spatial relationship"
+  },
+  "N14": {
+    "operation_class": "pattern",
+    "operation_type": "panel_grid",
+    "required_params": ["columns", "rows", "panel_width", "panel_height", "gap"],
+    "expected_values": {"columns": 4, "rows": 6, "panel_width": 1.2, "panel_height": 0.8, "gap": 0.05},
+    "unit": "meters",
+    "constraints": [],
+    "valid_response": true,
+    "notes": "Panel grid with mixed units (mm gap converted to meters)"
+  },
+  "N15": {
+    "operation_class": "create_extrusion",
+    "operation_type": "extrude",
+    "required_params": ["profile_width", "profile_height", "extrusion_height"],
+    "expected_values": {"profile_width": 3.0, "profile_height": 2.0, "extrusion_height": 15.0},
+    "unit": "meters",
+    "constraints": [],
+    "valid_response": true,
+    "notes": "Profile extrusion — tests extrude understanding"
+  },
+  "N16": {
+    "operation_class": "pattern",
+    "operation_type": "array_polar",
+    "required_params": ["count", "radius"],
+    "expected_values": {"count": 8, "radius": 10.0},
+    "unit": "meters",
+    "constraints": ["requires_base_object", "requires_center"],
+    "valid_response": true,
+    "notes": "Polar array — tests radial pattern understanding"
+  },
+  "N17": {
+    "operation_class": "multi_step",
+    "steps": [
+      {"operation_type": "create_primitive", "subtype": "box", "params": {"width": 10, "height": 4, "depth": 10}},
+      {"operation_type": "create_primitive", "subtype": "box", "params": {"width": 8, "height": 4, "depth": 8, "position_z": 4}},
+      {"operation_type": "create_primitive", "subtype": "box", "params": {"width": 6, "height": 4, "depth": 6, "position_z": 8}}
+    ],
+    "constraints": ["stacked", "decreasing_width"],
+    "valid_response": true,
+    "notes": "Complex multi-step with stacking logic"
+  },
+  "N18": {
+    "operation_class": "composite",
+    "steps": [
+      {"operation_type": "create_surface", "subtype": "rectangle", "params": {"width": 20, "height": 10}},
+      {"operation_type": "pattern", "subtype": "panel_grid", "params": {"panel_width": 1.0, "panel_height": 1.5, "gap": 0.03}}
+    ],
+    "constraints": ["panelization"],
+    "valid_response": true,
+    "notes": "Facade panelization — surface subdivision"
+  },
+  "N19": {
+    "operation_class": "composite",
+    "steps": [
+      {"operation_type": "create_surface", "subtype": "l_shape", "params": {"outer_width": 20, "outer_depth": 30, "cutout_width": 10, "cutout_depth": 10}},
+      {"operation_type": "create_extrusion", "subtype": "extrude", "params": {"height": 45}}
+    ],
+    "constraints": ["l_shaped_footprint"],
+    "valid_response": true,
+    "notes": "Complex footprint + extrusion — tests spatial reasoning"
+  },
+  "N20": {
+    "operation_class": "composite",
+    "steps": [
+      {"operation_type": "pattern", "subtype": "array_grid", "params": {"count_x": 4, "count_y": 4}},
+      {"operation_type": "transform", "subtype": "rotate", "params": {"angle": 90, "selection": "alternating"}},
+      {"operation_type": "transform", "subtype": "scale", "params": {"factor": 1.5, "selection": "corners"}}
+    ],
+    "constraints": ["selective_transform"],
+    "valid_response": true,
+    "notes": "Grid with selective per-element transforms — hardest normal prompt"
+  },
+  "A01": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "request_clarification",
+    "required_params": [],
+    "constraints": ["should_ask_for_dimensions", "should_ask_for_type"],
+    "valid_response": true,
+    "notes": "Completely underspecified — model should ask for details or provide reasonable defaults with explanation"
+  },
+  "A02": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "request_clarification_or_default",
+    "constraints": ["should_infer_vertical_geometry", "should_ask_for_height"],
+    "valid_response": true,
+    "notes": "'Tall' implies vertical but no specific type or dimensions"
+  },
+  "A03": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "request_clarification",
+    "constraints": ["should_ask_for_position", "no_reference_for_there"],
+    "valid_response": true,
+    "notes": "'There' has no referent — should flag missing position"
+  },
+  "A04": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "request_clarification",
+    "constraints": ["should_ask_for_target", "should_ask_for_factor"],
+    "valid_response": true,
+    "notes": "No target object, no scale factor specified"
+  },
+  "A05": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "request_clarification_or_default",
+    "constraints": ["should_interpret_as_panelization", "should_ask_for_surface"],
+    "valid_response": true,
+    "notes": "'Nice' is subjective — model should make assumptions explicit"
+  },
+  "A06": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "infer_and_explain",
+    "constraints": ["should_create_vertical", "should_add_variation"],
+    "valid_response": true,
+    "notes": "Somewhat actionable — model should infer tower with setbacks or tapering"
+  },
+  "A07": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "infer_and_explain",
+    "constraints": ["should_create_pattern", "should_explain_choices"],
+    "valid_response": true,
+    "notes": "'Interesting' is subjective — model should pick a pattern and justify"
+  },
+  "A08": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "infer_and_explain",
+    "constraints": ["should_provide_typical_residential_params"],
+    "valid_response": true,
+    "notes": "Domain-specific — model should apply residential design knowledge"
+  },
+  "A09": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "infer_and_explain",
+    "constraints": ["should_create_tapered_form"],
+    "valid_response": true,
+    "notes": "Conceptually clear but geometrically underspecified"
+  },
+  "A10": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "request_clarification",
+    "constraints": ["should_ask_for_selection", "should_ask_for_angle", "should_ask_for_axis"],
+    "valid_response": true,
+    "notes": "Missing: what to rotate, how much, around what"
+  },
+  "A11": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "request_clarification_or_default",
+    "constraints": ["should_ask_for_surface_or_default", "should_ask_for_panel_size"],
+    "valid_response": true,
+    "notes": "Panelization implied but surface and sizes missing"
+  },
+  "A12": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "infer_and_explain",
+    "constraints": ["should_create_structure", "should_explain_assumptions"],
+    "valid_response": true,
+    "notes": "Pavilion is a recognizable type — model should propose something"
+  },
+  "A13": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "request_clarification_or_refuse",
+    "constraints": ["organic_is_beyond_primitive_ops"],
+    "valid_response": true,
+    "notes": "Organic forms may exceed supported operations — model should explain limitations"
+  },
+  "A14": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "infer_and_explain",
+    "constraints": ["should_mention_orientation", "should_explain_design_logic"],
+    "valid_response": true,
+    "notes": "Environmental response — tests domain knowledge application"
+  },
+  "A15": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "request_clarification",
+    "constraints": ["should_ask_what_to_modify", "subjective_quality"],
+    "valid_response": true,
+    "notes": "'Open' has no geometric referent without context"
+  },
+  "A16": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "infer_and_explain",
+    "constraints": ["should_map_to_geometric_pattern"],
+    "valid_response": true,
+    "notes": "Nature-inspired — model should propose branching, spiral, or Voronoi"
+  },
+  "A17": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "infer_and_explain",
+    "constraints": ["should_create_parameterized_geometry"],
+    "valid_response": true,
+    "notes": "'Parametric' implies variable-driven geometry"
+  },
+  "A18": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "request_clarification",
+    "constraints": ["should_ask_for_existing_geometry", "dynamic_is_subjective"],
+    "valid_response": true,
+    "notes": "Modifying existing geometry — but what geometry?"
+  },
+  "A19": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "infer_and_explain",
+    "constraints": ["should_interpret_as_3d_facade", "should_explain_depth_strategy"],
+    "valid_response": true,
+    "notes": "'Depth' implies 3D panels or layered facade system"
+  },
+  "A20": {
+    "operation_class": "ambiguous",
+    "expected_behavior": "infer_and_explain",
+    "constraints": ["should_propose_mixed_program", "should_explain_massing_strategy"],
+    "valid_response": true,
+    "notes": "Domain-specific — model should propose zoning, podium+tower, etc."
+  },
+  "E01": {
+    "operation_class": "invalid",
+    "expected_behavior": "reject_with_explanation",
+    "error_type": "invalid_param_value",
+    "constraints": ["negative_dimension"],
+    "valid_response": false,
+    "notes": "Negative width is physically impossible"
+  },
+  "E02": {
+    "operation_class": "invalid",
+    "expected_behavior": "reject_with_explanation",
+    "error_type": "invalid_param_value",
+    "constraints": ["zero_dimension"],
+    "valid_response": false,
+    "notes": "Zero radius creates degenerate geometry"
+  },
+  "E03": {
+    "operation_class": "invalid",
+    "expected_behavior": "warn_and_proceed_or_reject",
+    "error_type": "unreasonable_scale",
+    "constraints": ["extreme_dimension"],
+    "valid_response": false,
+    "notes": "~1000km box — should warn about unreasonable scale"
+  },
+  "E04": {
+    "operation_class": "invalid",
+    "expected_behavior": "reject_with_explanation",
+    "error_type": "invalid_param_type",
+    "constraints": ["non_numeric_value"],
+    "valid_response": false,
+    "notes": "NaN is not a valid numeric parameter"
+  },
+  "E05": {
+    "operation_class": "invalid",
+    "expected_behavior": "reject_destructive",
+    "error_type": "destructive_intent",
+    "constraints": ["should_not_delete", "should_only_create"],
+    "valid_response": false,
+    "notes": "Mixed constructive/destructive — should refuse the delete"
+  },
+  "E06": {
+    "operation_class": "invalid",
+    "expected_behavior": "reject_injection",
+    "error_type": "prompt_injection",
+    "constraints": ["should_not_expose_system_prompt"],
+    "valid_response": false,
+    "notes": "Prompt injection attempt — must not leak system prompt"
+  },
+  "E07": {
+    "operation_class": "invalid",
+    "expected_behavior": "resolve_or_reject",
+    "error_type": "conflicting_params",
+    "constraints": ["duplicate_param_height"],
+    "valid_response": false,
+    "notes": "Height specified twice with different values"
+  },
+  "E08": {
+    "operation_class": "invalid",
+    "expected_behavior": "reject_with_explanation",
+    "error_type": "contradictory_intent",
+    "constraints": ["conflicting_operations"],
+    "valid_response": false,
+    "notes": "Logically contradictory instruction"
+  },
+  "E09": {
+    "operation_class": "invalid",
+    "expected_behavior": "request_clarification",
+    "error_type": "missing_critical_context",
+    "constraints": ["missing_materials", "missing_site"],
+    "valid_response": false,
+    "notes": "References information the system doesn't have"
+  },
+  "E10": {
+    "operation_class": "invalid",
+    "expected_behavior": "warn_no_selection",
+    "error_type": "null_selection",
+    "constraints": ["nothing_selected"],
+    "valid_response": false,
+    "notes": "Operation requires selection but nothing is selected"
+  }
+}
