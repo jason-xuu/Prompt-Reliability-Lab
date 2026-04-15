@@ -4,12 +4,15 @@ version = "1.0.0"
 description = "Prompt engineering evaluation harness for geometry-operation LLM prompts"
 requires-python = ">=3.10"
 dependencies = [
-    "openai>=1.30.0",
+    "google-genai>=1.0.0",
     "pandas>=2.2.0",
     "rich>=13.7.0",
     "python-dotenv>=1.0.0",
     "pydantic>=2.7.0",
 ]
+
+[project.optional-dependencies.openai]
+openai = ["openai>=1.30.0"]
 
 [project.optional-dependencies]
 dev = [

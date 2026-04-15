@@ -32,20 +32,23 @@ load_dotenv(PROJECT_ROOT / ".env")
 
 @dataclass(frozen=True)
 class LlmConfig:
-    """Configuration for the OpenAI LLM provider."""
+    """Configuration for the LLM provider (Gemini or OpenAI)."""
 
-    api_key: str = field(repr=False, default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
-    model: str = field(default_factory=lambda: os.getenv("OPENAI_MODEL", "gpt-4o"))
+    provider: str = field(default_factory=lambda: os.getenv("LLM_PROVIDER", "gemini"))
+    api_key: str = field(repr=False, default_factory=lambda: os.getenv("GEMINI_API_KEY", "") or os.getenv("OPENAI_API_KEY", ""))
+    model: str = field(default_factory=lambda: os.getenv("LLM_MODEL", "gemini-2.0-flash"))
     temperature: float = field(
-        default_factory=lambda: float(os.getenv("OPENAI_TEMPERATURE", "0.2"))
+        default_factory=lambda: float(os.getenv("LLM_TEMPERATURE", "0.2"))
     )
     max_tokens: int = 2048
 
     def validate(self) -> None:
         """Raise if the configuration is unusable."""
-        if not self.api_key or self.api_key.startswith("sk-your"):
+        if self.provider == "ollama":
+            return  # No API key needed for local Ollama
+        if not self.api_key:
             raise ValueError(
-                "OPENAI_API_KEY is not set. Copy .env.example to .env and add your key."
+                "No API key set. Add GEMINI_API_KEY or OPENAI_API_KEY to your .env file."
             )
 
 

@@ -4,7 +4,7 @@ Runner — executes all prompts in the corpus against a given template version.
 Handles:
   - Loading the prompt corpus from CSV
   - Loading the prompt template
-  - Sending each prompt to the LLM
+  - Sending each prompt to the LLM (Gemini or OpenAI)
   - Collecting responses (with consistency re-runs)
   - Feeding results to the Evaluator
 """
@@ -19,10 +19,22 @@ from pathlib import Path
 from typing import Any
 
 from src.config import LlmConfig, EvalConfig, TEMPLATES_DIR, PROMPTS_DIR
-from src.models.openai_adapter import OpenAIAdapter
 from src.evaluator import Evaluator, EvaluationReport
 
 logger = logging.getLogger(__name__)
+
+
+def _create_llm_adapter(config: LlmConfig):
+    """Factory: create the appropriate LLM adapter based on provider config."""
+    if config.provider == "openai":
+        from src.models.openai_adapter import OpenAIAdapter
+        return OpenAIAdapter(config)
+    elif config.provider == "ollama":
+        from src.models.ollama_adapter import OllamaAdapter
+        return OllamaAdapter(config)
+    else:
+        from src.models.gemini_adapter import GeminiAdapter
+        return GeminiAdapter(config)
 
 
 class Runner:
@@ -33,7 +45,7 @@ class Runner:
         llm_config: LlmConfig,
         eval_config: EvalConfig,
     ) -> None:
-        self._llm = OpenAIAdapter(llm_config)
+        self._llm = _create_llm_adapter(llm_config)
         self._eval_config = eval_config
         self._evaluator = Evaluator(eval_config.gold_path)
 
@@ -86,8 +98,14 @@ class Runner:
                 "responses": responses,
             }
 
-            # Rate-limit courtesy pause
-            time.sleep(0.5)
+            # Rate-limit courtesy pause (only for cloud providers)
+            if self._llm._model and not isinstance(self._llm, type(None)):
+                try:
+                    from src.models.ollama_adapter import OllamaAdapter
+                    if not isinstance(self._llm, OllamaAdapter):
+                        time.sleep(4.0)
+                except ImportError:
+                    time.sleep(4.0)
 
         report = self._evaluator.evaluate_all(
             results=results,
@@ -166,11 +184,26 @@ class Runner:
                     "error": result["error"],
                 }
             else:
-                parsed = result["parsed"] or {
-                    "status": "error",
-                    "operations": [],
-                    "warnings": ["Failed to parse LLM response"],
-                }
+                parsed = result["parsed"]
+                if parsed is None:
+                    parsed = {
+                        "status": "error",
+                        "operations": [],
+                        "warnings": ["Failed to parse LLM response"],
+                    }
+                elif isinstance(parsed, list):
+                    # Some models return a list of operations instead of a wrapper dict
+                    parsed = {
+                        "status": "success",
+                        "operations": parsed,
+                        "warnings": [],
+                    }
+                elif not isinstance(parsed, dict):
+                    parsed = {
+                        "status": "error",
+                        "operations": [],
+                        "warnings": ["Unexpected response type: %s" % type(parsed).__name__],
+                    }
 
             # Attach metadata
             parsed["_meta"] = {
