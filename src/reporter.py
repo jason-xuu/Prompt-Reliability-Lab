@@ -247,6 +247,53 @@ class Reporter:
             row = f"| {metric} | " + " | ".join(f"{v * 100:.1f}%" for v in values) + f" | {delta_str} |"
             lines.append(row)
 
+        # Explicit V2→V3 instruction adherence (implementation plan acceptance)
+        r_by_version = {r.template_version.lower(): r for r in reports}
+        if "v2" in r_by_version and "v3" in r_by_version:
+            v2a = r_by_version["v2"].by_metric().get("instruction_adherence", 0.0)
+            v3a = r_by_version["v3"].by_metric().get("instruction_adherence", 0.0)
+            delta_pp = (v3a - v2a) * 100
+            rel_pct = ((v3a - v2a) / v2a) * 100 if v2a > 1e-6 else 0.0
+            meets_pp = delta_pp >= 20.0
+            meets_rel = rel_pct >= 20.0
+            if meets_pp and meets_rel:
+                verdict = (
+                    "**Meets plan (both readings):** ≥20 percentage points **and** ≥20% relative gain on "
+                    "instruction adherence (V2→V3)."
+                )
+            elif meets_rel:
+                verdict = (
+                    "**Meets a relative reading of the plan:** instruction adherence improved by "
+                    f"**{rel_pct:.1f}%** relative to V2 (≥20% relative improvement). "
+                    f"Absolute gain is **{delta_pp:+.1f} percentage points** (below 20 pp if that was the intent)."
+                )
+            elif meets_pp:
+                verdict = (
+                    "**Meets an absolute reading:** ≥20 percentage points on instruction adherence (V2→V3)."
+                )
+            else:
+                verdict = (
+                    "**Below common thresholds on this run:** neither ≥20 percentage points nor ≥20% relative "
+                    "improvement. Consider a stronger model, template tweaks, or different `CONSISTENCY_RUNS`."
+                )
+            lines += [
+                "",
+                "## V2 → V3 instruction adherence (portfolio acceptance)",
+                "",
+                "Same model and run settings must be used for V2 and V3 when interpreting this row.",
+                "",
+                "| Version | Instruction adherence |",
+                "|---------|-------------------------|",
+                f"| V2 | {v2a * 100:.1f}% |",
+                f"| V3 | {v3a * 100:.1f}% |",
+                "",
+                f"**Absolute change (V2 → V3):** {delta_pp:+.1f} percentage points.",
+                f"**Relative change:** {rel_pct:+.1f}% vs V2 baseline.",
+                "",
+                verdict,
+                "",
+            ]
+
         # Improvement summary
         if len(reports) >= 2:
             first, last = reports[0], reports[-1]
@@ -290,6 +337,33 @@ class Reporter:
         path.write_text("\n".join(lines), encoding="utf-8")
         console.print(f"  Comparison saved: [cyan]{path}[/cyan]")
         return path
+
+    @staticmethod
+    def print_v2_v3_acceptance(reports: list[EvaluationReport]) -> None:
+        """Print V2→V3 instruction adherence delta (implementation plan criterion)."""
+        r_by_version = {r.template_version.lower(): r for r in reports}
+        if "v2" not in r_by_version or "v3" not in r_by_version:
+            return
+        v2a = r_by_version["v2"].by_metric().get("instruction_adherence", 0.0)
+        v3a = r_by_version["v3"].by_metric().get("instruction_adherence", 0.0)
+        delta_pp = (v3a - v2a) * 100
+        rel_pct = ((v3a - v2a) / v2a) * 100 if v2a > 1e-6 else 0.0
+        meets_pp = delta_pp >= 20.0
+        meets_rel = rel_pct >= 20.0
+        color = "green" if (meets_pp or meets_rel) else "yellow"
+        if meets_pp and meets_rel:
+            label = "meets plan (≥20 pp & ≥20% rel.)"
+        elif meets_rel:
+            label = f"meets ≥20% relative (+{rel_pct:.1f}% rel.; {delta_pp:+.1f} pp)"
+        elif meets_pp:
+            label = "meets ≥20 pp"
+        else:
+            label = "below both 20 pp and 20% relative"
+        console.print(
+            f"\n  [{color}]V2→V3 instruction adherence:[/{color}] "
+            f"{v2a * 100:.1f}% → {v3a * 100:.1f}% "
+            f"([bold]{delta_pp:+.1f}[/bold] pp, [bold]{rel_pct:+.1f}%[/bold] rel. vs V2) — {label}\n"
+        )
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────

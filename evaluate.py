@@ -4,9 +4,8 @@ Prompt Reliability Lab — CLI Entry Point.
 
 Usage:
     python evaluate.py --template v1                # Run one template
-    python evaluate.py --template v1 v2 v3          # Run all and compare
+    python evaluate.py --template v1 v2 v3          # Run all and write comparison.md
     python evaluate.py --template v3 --runs 1       # Quick single-run check
-    python evaluate.py --compare reports/            # Compare existing reports
 
 Examples:
     # Full evaluation with comparison
@@ -89,6 +88,7 @@ def run_evaluation(templates: list[str], consistency_runs: int | None = None) ->
         console.print("  [bold cyan]COMPARISON REPORT[/bold cyan]")
         console.print(f"{'='*60}\n")
         Reporter.save_comparison(reports)
+        Reporter.print_v2_v3_acceptance(reports)
 
         # Print comparison summary
         first, last = reports[0], reports[-1]
