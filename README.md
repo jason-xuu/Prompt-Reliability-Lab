@@ -182,6 +182,24 @@ Use this checklist before treating Prompt Reliability Lab as **complete**:
 
 **Command to regenerate all evidence:** `python evaluate.py --template v1 v2 v3` (add `--runs 1` for a faster pass at the cost of weaker consistency measurement).
 
+## Milestone Changelog
+
+### v0.1-initial-scaffold
+- Established the first complete version of the evaluation lab with corpus-driven execution, scoring, and baseline reporting.
+- Set the project structure and CLI workflow used by all later iterations.
+
+### v0.2-multi-provider
+- Added provider-aware runtime support for Gemini, OpenAI, and local Ollama.
+- Standardized configuration around a single `LLM_PROVIDER`/`LLM_MODEL` pattern and updated environment templates accordingly.
+
+### v0.3-evidence-reports
+- Expanded comparison reporting to include explicit V2→V3 acceptance analysis for instruction adherence.
+- Checked in reproducible evaluation artifacts (`v1`, `v2`, `v3` reports + raw outputs + comparison) to preserve evidence used for portfolio review.
+
+### v0.4-docs-signoff
+- Finalized documentation for project completion: setup paths, acceptance checklist mapping, and corpus/gold documentation.
+- Polished usage guidance so handoff and review can happen without project-specific tribal knowledge.
+
 ## Interview Talking Points
 
 - **Problem:** LLM outputs for geometry commands are unreliable without prompt engineering
