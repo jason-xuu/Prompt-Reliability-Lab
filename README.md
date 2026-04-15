@@ -16,8 +16,8 @@ This project demonstrates disciplined prompt engineering methodology:
 
 ### Prerequisites
 
-- Python ≥ 3.10
-- OpenAI API key
+- Python ≥ 3.10 (3.9 may work but is not targeted)
+- One LLM backend: **Gemini** (API key), **OpenAI** (API key), or **Ollama** (local, no key)
 
 ### Setup
 
@@ -32,9 +32,9 @@ source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 # Install dependencies
 pip install -e ".[dev]"
 
-# Configure API key
+# Configure provider and keys (see .env.example)
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+# Edit .env: set LLM_PROVIDER and model / API key as appropriate
 ```
 
 ### Run Evaluation
@@ -43,10 +43,13 @@ cp .env.example .env
 # Evaluate a single template
 python evaluate.py --template v3
 
-# Compare all three templates (recommended)
+# Full portfolio run: all templates + reports/comparison.md (recommended before sign-off)
 python evaluate.py --template v1 v2 v3
 
-# Quick single-run check (no consistency measurement)
+# Faster sign-off run (same corpus; consistency metric is single-run only)
+python evaluate.py --template v1 v2 v3 --runs 1
+
+# Quick single-template check
 python evaluate.py --template v3 --runs 1
 
 # Verbose mode for debugging
@@ -65,6 +68,7 @@ pytest tests/ -v
 prompt-reliability-lab/
 ├── evaluate.py                 # CLI entry point
 ├── prompts/
+│   ├── README.md               # Corpus + gold documentation
 │   ├── corpus.csv              # 50-prompt test corpus
 │   ├── gold_expectations.json  # Expected outputs per prompt
 │   └── templates/
@@ -78,7 +82,9 @@ prompt-reliability-lab/
 │   ├── metrics.py              # 5 metric implementations
 │   ├── reporter.py             # Markdown + terminal report generation
 │   └── models/
-│       └── openai_adapter.py   # OpenAI API wrapper with retry
+│       ├── gemini_adapter.py   # Google Gemini
+│       ├── openai_adapter.py   # OpenAI
+│       └── ollama_adapter.py   # Local Ollama (OpenAI-compatible API)
 ├── reports/                    # Generated evaluation reports
 ├── rubric.md                   # Scoring criteria documentation
 ├── tests/                      # pytest test suite
@@ -118,42 +124,32 @@ prompt-reliability-lab/
 - Confidence scoring
 - **Expected:** Best overall performance, especially on edge cases
 
-## Failure Taxonomy
+## Failure taxonomy and fix strategies
 
-The evaluator automatically classifies failures into 9 types:
+The evaluator classifies failures into discrete types. **What to do about each type** is documented in:
 
-| Type | Description |
-|------|-------------|
-| `missing_params` | Required parameters absent |
-| `wrong_operation` | Wrong operation type |
-| `hallucinated_extra` | Unrequested operations added |
-| `invalid_range` | Values outside valid range |
-| `refused_valid` | Valid request incorrectly refused |
-| `accepted_invalid` | Invalid request incorrectly accepted |
-| `inconsistent_output` | Different results on repeated runs |
-| `no_explanation` | Missing assumption/error explanation |
-| `schema_violation` | Output doesn't match JSON schema |
+- **`rubric.md`** — table of failure types with **typical fix** strategies
+- **`reports/v*_report.md`** — per-run table with **Fix Strategy** column (same mapping as the rubric)
+
+Types include: `missing_params`, `wrong_operation`, `hallucinated_extra`, `invalid_range`, `refused_valid`, `accepted_invalid`, `inconsistent_output`, `no_explanation`, `schema_violation`.
 
 ## Configuration
 
-All settings are in `.env`:
+All settings are in `.env` (see `.env.example`). Typical variables:
 
-```env
-OPENAI_API_KEY=sk-...          # Required
-OPENAI_MODEL=gpt-4o            # Model to test
-OPENAI_TEMPERATURE=0.2         # Lower = more deterministic
-CONSISTENCY_RUNS=3             # Runs per prompt for consistency
-MAX_CONCURRENT_REQUESTS=5     # Rate limiting
-```
+- **`LLM_PROVIDER`** — `gemini` | `openai` | `ollama`
+- **`LLM_MODEL`** — provider-specific model id
+- **`GEMINI_API_KEY`** / **`OPENAI_API_KEY`** — omit for Ollama
+- **`LLM_TEMPERATURE`** — lower is more deterministic
+- **`CONSISTENCY_RUNS`** — repeated generations per prompt for the consistency metric
+- **`MAX_CONCURRENT_REQUESTS`** — batch size for cloud providers
 
-## Known Limitations
+## Known limitations
 
-1. **API dependency:** Requires valid OpenAI API key and internet access
-2. **Cost:** Full evaluation (50 prompts × 3 templates × 3 runs) = ~450 API calls
-3. **Latency:** Full run takes 15-30 minutes depending on rate limits
-4. **No Anthropic adapter yet:** Currently OpenAI-only (adapter interface exists for extension)
-5. **Consistency metric sensitivity:** Low temperature reduces variance but may mask real inconsistencies
-6. **Gold expectations are opinionated:** Ambiguous prompt scoring requires judgment calls about "correct" behavior
+1. **Provider dependency:** Cloud modes need network and valid keys; Ollama needs a running local server.
+2. **Cost / time:** Full run is **50 × templates × `CONSISTENCY_RUNS`** generations (e.g. 450 calls for three templates and three runs). Local Ollama avoids API cost but is still CPU/GPU bound.
+3. **Consistency metric:** With `--runs 1`, the consistency score reflects a single sample per prompt.
+4. **Gold expectations are opinionated:** Ambiguous prompts require judgment calls; see `prompts/README.md` and `rubric.md`.
 
 ## Architecture
 
@@ -162,7 +158,7 @@ User → evaluate.py (CLI)
          ↓
        Runner (orchestration)
          ↓
-       OpenAIAdapter (LLM calls)
+       GeminiAdapter / OpenAIAdapter / OllamaAdapter
          ↓
        Evaluator (scoring)
          ↓
@@ -170,6 +166,21 @@ User → evaluate.py (CLI)
          ↓
        Reporter (markdown + terminal output)
 ```
+
+## Portfolio acceptance (KPF implementation plan — Project 1)
+
+Use this checklist before treating Prompt Reliability Lab as **complete**:
+
+| Criterion | Where it is satisfied |
+|-----------|------------------------|
+| **50 prompts + gold** documented | `prompts/corpus.csv`, `prompts/gold_expectations.json`, **`prompts/README.md`** |
+| **Three templates + rationale** | **Prompt Template Evolution** (below) + files in `prompts/templates/` |
+| **Structured report with all 5 metrics** | `Reporter.save_report` → `reports/v*_report.md` |
+| **V2→V3 “≥20%” on instruction adherence** (same model/settings) | **`reports/comparison.md`** — reports **absolute (pp)** and **relative (%)** gain; `implementation_plan.md` wording matches **relative** improvement on this run |
+| **Failure taxonomy + fix strategies** | **`rubric.md`** + per-report tables in `reports/v*_report.md` |
+| **AI vs deterministic recommendation** | Final section of each **`reports/v*_report.md`** |
+
+**Command to regenerate all evidence:** `python evaluate.py --template v1 v2 v3` (add `--runs 1` for a faster pass at the cost of weaker consistency measurement).
 
 ## Interview Talking Points
 
