@@ -14,6 +14,8 @@ This project demonstrates disciplined prompt engineering methodology:
 
 ## Quick Start
 
+**Interview (macOS):** double-click `../interview-demos/Prompt Reliability Lab - Quick Eval.command` (or `interview-demos/Interview Menu.command`). See `interview-demos/README.md`.
+
 ### Prerequisites
 
 - Python ≥ 3.10 (3.9 may work but is not targeted)
